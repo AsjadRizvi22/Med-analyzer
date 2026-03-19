@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedScan AI — Medical Report Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --blue-900: #0a1628;
+    --blue-800: #0f2044;
+    --blue-700: #1a3a6e;
+    --blue-600: #1e4db7;
+    --blue-500: #2563eb;
+    --blue-400: #3b82f6;
+    --blue-300: #93c5fd;
+    --blue-100: #dbeafe;
+    --blue-50:  #eff6ff;
+    --white: #ffffff;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-400: #94a3b8;
+    --gray-600: #475569;
+    --gray-800: #1e293b;
+    --red: #ef4444;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --shadow-sm: 0 1px 3px rgba(15,32,68,0.08);
+    --shadow-md: 0 4px 16px rgba(15,32,68,0.12);
+    --shadow-lg: 0 12px 40px rgba(15,32,68,0.16);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 68px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
+    color: var(--blue-800); text-decoration: none; letter-spacing: -0.5px;
+  }
+  .logo-icon {
+    width: 38px; height: 38px; background: var(--blue-500);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon svg { width: 22px; height: 22px; fill: white; }
+  .nav { display: flex; align-items: center; gap: 8px; }
+  .nav-btn {
+    padding: 8px 18px; border-radius: var(--radius-xs);
+    font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; transition: all .2s; border: none;
+  }
+  .nav-btn-ghost { background: transparent; color: var(--gray-600); }
+  .nav-btn-ghost:hover { background: var(--gray-100); color: var(--gray-800); }
+  .nav-btn-primary { background: var(--blue-500); color: white; }
+  .nav-btn-primary:hover { background: var(--blue-600); }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, var(--blue-800) 0%, var(--blue-600) 60%, var(--blue-400) 100%);
+    padding: 80px 32px 90px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 0.8rem; color: var(--blue-100); font-weight: 500;
+    margin-bottom: 24px; letter-spacing: 0.5px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800; color: white; line-height: 1.1;
+    margin-bottom: 18px; letter-spacing: -1px;
+  }
+  .hero h1 span { color: var(--blue-300); }
+  .hero p {
+    font-size: 1.05rem; color: rgba(255,255,255,0.75);
+    max-width: 520px; margin: 0 auto 36px; line-height: 1.7;
+  }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: white; color: var(--blue-700);
+    padding: 14px 32px; border-radius: 100px;
+    font-weight: 600; font-size: 1rem; cursor: pointer;
+    border: none; transition: all .25s; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+  .hero-cta svg { width: 18px; height: 18px; }
+
+  /* ── MAIN LAYOUT ── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 48px 32px 80px; }
+
+  /* ── MODE SELECTOR ── */
+  .mode-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); padding: 6px;
+    margin-bottom: 36px; width: fit-content;
+    box-shadow: var(--shadow-sm);
+  }
+  .mode-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 9px 20px; border-radius: var(--radius-sm);
+    font-size: 0.875rem; font-weight: 500; cursor: pointer;
+    border: none; transition: all .2s; color: var(--gray-600);
+    background: transparent;
+  }
+  .mode-btn.active { background: var(--blue-500); color: white; }
+  .mode-btn svg { width: 15px; height: 15px; }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media(max-width:900px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); padding: 28px;
+    box-shadow: var(--shadow-sm); transition: box-shadow .2s;
+  }
+  .card:hover { box-shadow: var(--shadow-md); }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    color: var(--blue-800); margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title-icon {
+    width: 30px; height: 30px; background: var(--blue-50);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  }
+  .card-title-icon svg { width: 16px; height: 16px; stroke: var(--blue-500); fill: none; }
+
+  /* ── INPUT AREA ── */
+  .input-area {
+    width: 100%; min-height: 200px;
+    border: 2px dashed var(--blue-300);
+    border-radius: var(--radius-sm); padding: 20px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    color: var(--gray-800); resize: vertical;
+    background: var(--blue-50); transition: border-color .2s, background .2s;
+    outline: none; line-height: 1.6;
+  }
+  .input-area:focus { border-color: var(--blue-500); background: white; }
+  .input-area::placeholder { color: var(--gray-400); }
+
+  /* ── FILE UPLOAD ── */
+  .upload-zone {
+    border: 2px dashed var(--blue-300); border-radius: var(--radius-sm);
+    padding: 36px 20px; text-align: center; cursor: pointer;
+    background: var(--blue-50); transition: all .2s;
+  }
+  .upload-zone:hover { border-color: var(--blue-500); background: var(--blue-100); }
+  .upload-icon {
+    width: 48px; height: 48px; background: var(--blue-100);
+    border-radius: 50%; margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .upload-icon svg { width: 24px; height: 24px; stroke: var(--blue-500); fill: none; }
+  .upload-zone p { font-size: 0.9rem; color: var(--gray-600); }
+  .upload-zone strong { color: var(--blue-600); }
+  .upload-zone small { font-size: 0.75rem; color: var(--gray-400); display: block; margin-top: 4px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; border: none; transition: all .2s;
+  }
+  .btn-primary { background: var(--blue-500); color: white; }
+  .btn-primary:hover { background: var(--blue-600); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.4); }
+  .btn-outline { background: transparent; color: var(--blue-600); border: 2px solid var(--blue-300); }
+  .btn-outline:hover { background: var(--blue-50); }
+  .btn svg { width: 17px; height: 17px; }
+  .btn-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+  /* ── LANG SELECTOR ── */
+  .lang-selector {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--gray-100); border-radius: var(--radius-xs);
+    padding: 4px;
+  }
+  .lang-opt {
+    padding: 6px 14px; border-radius: 6px;
+    font-size: 0.8rem; font-weight: 500; cursor: pointer;
+    border: none; background: transparent; color: var(--gray-600); transition: all .2s;
+  }
+  .lang-opt.active { background: var(--blue-500); color: white; }
+
+  /* ── RESULTS TABLE ── */
+  .results-table { width: 100%; border-collapse: collapse; }
+  .results-table th {
+    background: var(--blue-800); color: white;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 12px 16px; text-align: left;
+  }
+  .results-table th:first-child { border-radius: 8px 0 0 0; }
+  .results-table th:last-child { border-radius: 0 8px 0 0; }
+  .results-table td {
+    padding: 13px 16px; font-size: 0.88rem;
+    border-bottom: 1px solid var(--gray-100); vertical-align: middle;
+  }
+  .results-table tr:last-child td { border-bottom: none; }
+  .results-table tr:hover td { background: var(--blue-50); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 100px;
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .badge-high { background: #fee2e2; color: #dc2626; }
+  .badge-low { background: #fef9c3; color: #ca8a04; }
+  .badge-normal { background: #dcfce7; color: #16a34a; }
+  .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ── EXPLANATION CARD ── */
+  .explain-card {
+    background: linear-gradient(135deg, var(--blue-50), white);
+    border: 1px solid var(--blue-100); border-radius: var(--radius-sm);
+    padding: 20px; margin-top: 8px;
+  }
+  .explain-card p { font-size: 0.875rem; color: var(--gray-700); line-height: 1.7; }
+
+  /* ── INSIGHT BANNER ── */
+  .insight-banner {
+    background: linear-gradient(135deg, var(--blue-800), var(--blue-600));
+    border-radius: var(--radius-sm); padding: 20px 24px;
+    display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px;
+  }
+  .insight-banner-icon {
+    width: 40px; height: 40px; background: rgba(255,255,255,0.15);
+    border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .insight-banner-icon svg { width: 20px; height: 20px; stroke: white; fill: none; }
+  .insight-banner h4 { font-size: 0.9rem; font-weight: 600; color: white; margin-bottom: 4px; }
+  .insight-banner p { font-size: 0.83rem; color: rgba(255,255,255,0.8); line-height: 1.6; }
+
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    background: #fff8e1; border: 1px solid #fbbf24; border-radius: var(--radius-sm);
+    padding: 14px 20px; display: flex; align-items: flex-start; gap: 12px;
+    margin-top: 32px;
+  }
+  .disclaimer svg { width: 18px; height: 18px; fill: #d97706; flex-shrink: 0; margin-top: 1px; }
+  .disclaimer p { font-size: 0.82rem; color: #92400e; line-height: 1.6; }
+
+  /* ── STAT CARDS ── */
+  .stat-card {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); padding: 22px 24px;
+    box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px;
+  }
+  .stat-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .stat-icon svg { width: 24px; height: 24px; fill: none; stroke: white; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--blue-800); line-height: 1; }
+  .stat-label { font-size: 0.8rem; color: var(--gray-400); margin-top: 3px; }
+
+  /* ── DIAGNOSIS CARD ── */
+  .diag-card {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px; border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200); background: white; margin-bottom: 10px;
+  }
+  .diag-prob {
+    font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700;
+    color: var(--blue-600); min-width: 50px;
+  }
+  .diag-bar-wrap { flex: 1; }
+  .diag-bar-track { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+  .diag-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--blue-400), var(--blue-600)); transition: width 1s ease; }
+  .diag-name { font-size: 0.88rem; font-weight: 500; color: var(--gray-800); }
+  .diag-sub { font-size: 0.75rem; color: var(--gray-400); }
+
+  /* ── INFO TOOLTIP ── */
+  .info-btn {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--blue-100); border: none; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; color: var(--blue-600);
+    position: relative;
+  }
+  .tooltip {
+    position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    background: var(--blue-800); color: white;
+    font-size: 0.75rem; padding: 8px 12px; border-radius: 8px;
+    width: 200px; line-height: 1.4; z-index: 50; pointer-events: none;
+    opacity: 0; transition: opacity .2s;
+  }
+  .info-btn:hover .tooltip { opacity: 1; }
+
+  /* ── SECTION HEADING ── */
+  .section-heading {
+    font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700;
+    color: var(--blue-800); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-heading::after {
+    content: ''; flex: 1; height: 1px; background: var(--gray-200);
+  }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--gray-200); margin-bottom: 24px; }
+  .tab {
+    padding: 10px 22px; font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; border: none; background: transparent; color: var(--gray-400);
+    border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s;
+  }
+  .tab.active { color: var(--blue-600); border-bottom-color: var(--blue-500); }
+
+  /* ── STEP INDICATOR ── */
+  .steps { display: flex; align-items: center; gap: 0; margin-bottom: 36px; }
+  .step { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .step:last-child { flex: 0; }
+  .step-circle {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700; transition: all .3s;
+  }
+  .step-circle.done { background: var(--blue-500); color: white; }
+  .step-circle.active { background: var(--blue-100); color: var(--blue-600); border: 2px solid var(--blue-500); }
+  .step-circle.pending { background: var(--gray-100); color: var(--gray-400); }
+  .step-label { font-size: 0.78rem; color: var(--gray-600); display: none; }
+  @media(min-width:600px) { .step-label { display: block; } }
+  .step-line { flex: 1; height: 2px; background: var(--gray-200); margin: 0 8px; }
+  .step-line.done { background: var(--blue-400); }
+
+  /* ── SPINNER ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin .7s linear infinite; display: none;
+  }
+  .loading .spinner { display: block; }
+  .loading .btn-text { display: none; }
+
+  /* ── FADE IN ── */
+  @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
+  .fade-up { animation: fadeUp .4s ease both; }
+  .fade-up:nth-child(2) { animation-delay: .08s; }
+  .fade-up:nth-child(3) { animation-delay: .16s; }
+
+  /* ── SAMPLE DATA PILL ── */
+  .sample-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .sample-pill {
+    padding: 5px 14px; border-radius: 100px; font-size: 0.78rem; font-weight: 500;
+    background: var(--blue-50); color: var(--blue-600); border: 1px solid var(--blue-200);
+    cursor: pointer; transition: all .2s;
+  }
+  .sample-pill:hover { background: var(--blue-100); }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+
+  /* ── RESULT SECTION ── */
+  #results-section { display: none; }
+  #results-section.show { display: block; }
+
+  /* footer */
+  footer {
+    background: var(--blue-900); color: rgba(255,255,255,0.5);
+    text-align: center; padding: 28px;
+    font-size: 0.82rem; line-height: 1.7;
+  }
+  footer strong { color: rgba(255,255,255,0.8); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      MedScan AI
+    </a>
+    <nav class="nav">
+      <div class="lang-selector">
+        <button class="lang-opt active" onclick="setLang('en',this)">EN</button>
+        <button class="lang-opt" onclick="setLang('ur',this)">اردو</button>
+      </div>
+      <button class="nav-btn nav-btn-ghost">How it Works</button>
+      <button class="nav-btn nav-btn-primary">Sign In</button>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="white"><circle cx="12" cy="12" r="10"/></svg>
+    AI-Powered Medical Report Analysis
+  </div>
+  <h1>Understand Your <span>Lab Results</span><br/>Instantly</h1>
+  <p>Paste your medical report, upload a PDF, or use OCR — get clear AI explanations, abnormal flags, and clinical insights in seconds.</p>
+  <button class="hero-cta" onclick="document.querySelector('.main').scrollIntoView({behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    Start Analyzing
+  </button>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- STEP INDICATOR -->
+  <div class="steps">
+    <div class="step">
+      <div class="step-circle done" id="step1">1</div>
+      <span class="step-label">Input Report</span>
+    </div>
+    <div class="step-line done" id="line1"></div>
+    <div class="step">
+      <div class="step-circle active" id="step2">2</div>
+      <span class="step-label">AI Analysis</span>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step">
+      <div class="step-circle pending" id="step3">3</div>
+      <span class="step-label">View Results</span>
+    </div>
+  </div>
+
+  <!-- MODE BAR -->
+  <div class="mode-bar">
+    <button class="mode-btn active" onclick="setMode('text',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+      Text Input
+    </button>
+    <button class="mode-btn" onclick="setMode('upload',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      PDF / Image (OCR)
+    </button>
+    <button class="mode-btn" onclick="setMode('view',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Doctor View
+    </button>
+  </div>
+
+  <!-- INPUT SECTION -->
+  <div class="grid-2 fade-up" style="margin-bottom:36px">
+
+    <!-- TEXT MODE -->
+    <div id="mode-text">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          Paste Your Medical Report
+        </div>
+        <textarea class="input-area" id="report-input" rows="9" placeholder="Paste your CBC, LFTs, RFTs, or any lab report here...
+
+Example:
+Hemoglobin: 9.2 g/dL (Normal: 12–16)
+WBC: 11,500 /μL (Normal: 4000–11000)
+Platelets: 420,000 /μL (Normal: 150,000–400,000)
+Serum Creatinine: 0.9 mg/dL (Normal: 0.6–1.2)"></textarea>
+        <div class="sample-pills">
+          <span>Try sample:</span>
+          <div class="sample-pill" onclick="loadSample('cbc')">CBC Report</div>
+          <div class="sample-pill" onclick="loadSample('lft')">Liver Function</div>
+          <div class="sample-pill" onclick="loadSample('thyroid')">Thyroid Panel</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="analyze-btn" onclick="analyzeReport()">
+            <div class="spinner"></div>
+            <span class="btn-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Analyze Report
+            </span>
+          </button>
+          <button class="btn btn-outline" onclick="clearInput()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD MODE -->
+    <div id="mode-upload" class="hidden">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          Upload PDF or Image
+        </div>
+        <div class="upload-zone" onclick="document.getElementById('file-input').click()" id="drop-zone">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p><strong>Click to upload</strong> or drag & drop</p>
+          <small>PDF, JPG, PNG — Max 10MB — OCR will extract text automatically</small>
+          <input type="file" id="file-input" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFile(this)"/>
+        </div>
+        <div id="file-name" style="margin-top:12px;font-size:0.85rem;color:var(--blue-600);display:none"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="analyzeReport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Extract & Analyze
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCTOR VIEW MODE -->
+    <div id="mode-view" class="hidden">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          Doctor Mode — Technical Output
+        </div>
+        <p style="font-size:0.88rem;color:var(--gray-600);line-height:1.7;margin-bottom:16px">In this mode, results will be shown with full clinical terminology, differential diagnosis suggestions, and pathophysiology notes — designed for healthcare professionals.</p>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="font-size:0.85rem;color:var(--gray-700);">Output level:</div>
+          <div class="lang-selector">
+            <button class="lang-opt active" onclick="setOutputMode('patient',this)">Patient</button>
+            <button class="lang-opt" onclick="setOutputMode('doctor',this)">Doctor</button>
+          </div>
+        </div>
+        <textarea class="input-area" style="margin-top:16px" rows="6" placeholder="Paste report here for technical analysis..."></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="analyzeReport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Run Clinical Analysis
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: INFO CARD -->
+    <div class="card fade-up" style="align-self:start">
+      <div class="card-title">
+        <div class="card-title-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        What Can I Analyze?
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;background:var(--blue-500);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;color:var(--gray-800)">Complete Blood Count (CBC)</div>
+            <div style="font-size:0.78rem;color:var(--gray-400)">Hb, WBC, Platelets, RBC, Hematocrit</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;background:var(--blue-500);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;color:var(--gray-800)">Liver Function Tests (LFTs)</div>
+            <div style="font-size:0.78rem;color:var(--gray-400)">ALT, AST, ALP, Bilirubin, Albumin</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;background:var(--blue-500);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;color:var(--gray-800)">Renal Function Tests (RFTs)</div>
+            <div style="font-size:0.78rem;color:var(--gray-400)">Creatinine, BUN, Urea, eGFR</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;background:var(--blue-500);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;color:var(--gray-800)">Thyroid & Endocrine Panel</div>
+            <div style="font-size:0.78rem;color:var(--gray-400)">TSH, T3, T4, Cortisol, HbA1c</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="width:8px;height:8px;background:var(--blue-400);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;color:var(--gray-800)">Lipid Profile, Electrolytes & more</div>
+            <div style="font-size:0.78rem;color:var(--gray-400)">Any standard lab report format</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RESULTS SECTION ===== -->
+  <div id="results-section">
+
+    <!-- SUMMARY STATS -->
+    <div class="section-heading">Analysis Results</div>
+    <div class="grid-3 fade-up" style="margin-bottom:28px" id="stat-row">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--blue-500)">
+          <svg viewBox="0 0 24 24" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div>
+          <div class="stat-value" id="stat-total">–</div>
+          <div class="stat-label">Parameters Analyzed</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#ef4444">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <div class="stat-value" id="stat-abnormal">–</div>
+          <div class="stat-label">Abnormal Values</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#22c55e">
+          <svg viewBox="0 0 24 24" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <div class="stat-value" id="stat-normal">–</div>
+          <div class="stat-label">Normal Values</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('extracted',this)">Extracted Data</button>
+      <button class="tab" onclick="showTab('explanation',this)">AI Explanation</button>
+      <button class="tab" onclick="showTab('diagnosis',this)">Possible Conditions</button>
+    </div>
+
+    <!-- TAB: EXTRACTED DATA -->
+    <div id="tab-extracted">
+      <div class="insight-banner">
+        <div class="insight-banner-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div>
+          <h4>AI Clinical Insight</h4>
+          <p id="insight-text">Analyzing your report for patterns and clinical correlations…</p>
+        </div>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="results-table" id="results-table">
+          <thead>
+            <tr>
+              <th>Test Name</th>
+              <th>Your Value</th>
+              <th>Reference Range</th>
+              <th>Status</th>
+              <th>Info</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: EXPLANATION -->
+    <div id="tab-explanation" class="hidden">
+      <div id="explanation-content"></div>
+    </div>
+
+    <!-- TAB: DIAGNOSIS -->
+    <div id="tab-diagnosis" class="hidden">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          Probabilistic Diagnosis Suggestions
+        </div>
+        <p style="font-size:0.82rem;color:var(--gray-400);margin-bottom:20px">Based on your abnormal values. These are AI suggestions only — not a diagnosis.</p>
+        <div id="diagnosis-list"></div>
+      </div>
+    </div>
+
+    <!-- DISCLAIMER -->
+    <div class="disclaimer">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <p><strong>Medical Disclaimer:</strong> This tool is for educational and informational purposes only. Results generated are not a medical diagnosis. Always consult a qualified healthcare professional for medical advice, diagnosis, or treatment.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <strong>MedScan AI</strong> — Medical Report Analyzer<br/>
+  Built for educational use · Always consult your doctor · Not a diagnostic tool
+</footer>
+
+<script>
+/* ── DATA ── */
+const SAMPLES = {
+  cbc: `Hemoglobin: 9.2 g/dL (Reference: 12.0–16.0 g/dL)
+WBC: 11,800 /μL (Reference: 4,000–11,000 /μL)
+Platelets: 430,000 /μL (Reference: 150,000–400,000 /μL)
+MCV: 70 fL (Reference: 80–100 fL)
+MCH: 24 pg (Reference: 27–33 pg)
+Hematocrit: 30% (Reference: 36–46%)`,
+
+  lft: `ALT (SGPT): 82 U/L (Reference: 7–56 U/L)
+AST (SGOT): 65 U/L (Reference: 10–40 U/L)
+ALP: 145 U/L (Reference: 44–147 U/L)
+Total Bilirubin: 2.1 mg/dL (Reference: 0.1–1.2 mg/dL)
+Direct Bilirubin: 1.4 mg/dL (Reference: 0–0.3 mg/dL)
+Albumin: 3.1 g/dL (Reference: 3.5–5.0 g/dL)`,
+
+  thyroid: `TSH: 8.5 mIU/L (Reference: 0.4–4.0 mIU/L)
+Free T4: 0.6 ng/dL (Reference: 0.8–1.8 ng/dL)
+Free T3: 2.1 pg/mL (Reference: 2.3–4.2 pg/mL)
+Anti-TPO Antibodies: 250 IU/mL (Reference: <35 IU/mL)`
+};
+
+const TEST_INFO = {
+  'Hemoglobin': 'Carries oxygen in red blood cells. Low = anemia; High = polycythemia.',
+  'WBC': 'White blood cells fight infection. High = infection/inflammation; Low = immune suppression.',
+  'Platelets': 'Help blood clot. Low = bleeding risk; High = thrombosis risk.',
+  'MCV': 'Size of red blood cells. Low = microcytic anemia; High = macrocytic anemia.',
+  'MCH': 'Hemoglobin per red cell. Reflects RBC color and size abnormalities.',
+  'Hematocrit': 'Percentage of blood volume occupied by red cells.',
+  'ALT': 'Liver enzyme. Elevated primarily in hepatocellular damage.',
+  'AST': 'Liver/muscle enzyme. Elevated in liver or cardiac injury.',
+  'ALP': 'Enzyme elevated in liver or bone disease.',
+  'Total Bilirubin': 'Breakdown product of hemoglobin. Elevated = jaundice.',
+  'Direct Bilirubin': 'Conjugated bilirubin. High = obstructive or hepatic jaundice.',
+  'Albumin': 'Protein made by liver. Low = chronic liver/kidney disease or malnutrition.',
+  'TSH': 'Pituitary hormone regulating thyroid. High TSH = hypothyroidism.',
+  'Free T4': 'Active thyroid hormone. Low = hypothyroidism.',
+  'Free T3': 'Most active thyroid hormone. Low = hypothyroidism.',
+  'Anti-TPO Antibodies': 'Marker of autoimmune thyroid disease (Hashimoto\'s).'
+};
+
+const DIAGNOSES = {
+  cbc: [
+    { name: 'Iron Deficiency Anemia', sub: 'Low Hb, MCV, MCH with high platelets', prob: 72 },
+    { name: 'Anemia of Chronic Disease', sub: 'Low Hb with borderline high WBC', prob: 20 },
+    { name: 'Thalassemia Trait', sub: 'Consider if MCV disproportionately low', prob: 8 }
+  ],
+  lft: [
+    { name: 'Viral Hepatitis', sub: 'Elevated ALT/AST + raised bilirubin pattern', prob: 55 },
+    { name: 'Obstructive Jaundice', sub: 'High direct bilirubin + elevated ALP', prob: 30 },
+    { name: 'Non-alcoholic Fatty Liver', sub: 'Mildly elevated transaminases pattern', prob: 15 }
+  ],
+  thyroid: [
+    { name: 'Hypothyroidism (Primary)', sub: 'High TSH + low free T4/T3', prob: 80 },
+    { name: "Hashimoto's Thyroiditis", sub: 'Elevated anti-TPO antibodies', prob: 75 },
+    { name: 'Subclinical Hypothyroidism', sub: 'Consider based on symptom severity', prob: 15 }
+  ]
+};
+
+const EXPLANATIONS = {
+  cbc: [
+    { name: 'Hemoglobin — Low', text: 'Your hemoglobin is below normal range. This means your red blood cells are carrying less oxygen than needed. Possible causes include iron deficiency, chronic disease, or blood loss. You may feel tired, short of breath, or pale.', status: 'low' },
+    { name: 'WBC — High', text: 'Your white cell count is slightly elevated. This usually indicates your immune system is actively responding — commonly due to bacterial infection, inflammation, or stress. Consult your doctor if you have fever or infection symptoms.', status: 'high' },
+    { name: 'Platelets — High', text: 'Slightly elevated platelets (thrombocytosis) can be reactive — often seen with iron deficiency anemia, inflammation, or after surgery. Rarely indicates a primary bone marrow problem.', status: 'high' }
+  ],
+  lft: [
+    { name: 'ALT & AST — Elevated', text: 'Both ALT and AST are liver enzymes elevated above normal. This pattern (hepatocellular pattern) suggests liver cell injury — commonly from viral hepatitis, fatty liver, or medications.', status: 'high' },
+    { name: 'Bilirubin — Elevated', text: 'Total and direct bilirubin are raised, indicating jaundice. The high direct component suggests either obstructed bile flow (gallstone, tumor) or hepatocellular disease.', status: 'high' },
+    { name: 'Albumin — Low', text: 'Low albumin indicates reduced synthetic function of the liver or protein loss (nephrotic syndrome, malnutrition). In combination with elevated enzymes, this suggests moderate liver dysfunction.', status: 'low' }
+  ],
+  thyroid: [
+    { name: 'TSH — Elevated', text: 'A high TSH means your pituitary is sending extra signals to your thyroid because the thyroid is underperforming. This is the hallmark of primary hypothyroidism.', status: 'high' },
+    { name: 'Free T4 & Free T3 — Low', text: 'Both active thyroid hormones are below the normal range. This confirms overt hypothyroidism. Symptoms include fatigue, weight gain, cold intolerance, and constipation.', status: 'low' },
+    { name: 'Anti-TPO — Very High', text: 'Markedly elevated anti-TPO antibodies strongly suggest Hashimoto\'s thyroiditis — an autoimmune destruction of the thyroid gland. This is the most common cause of hypothyroidism.', status: 'high' }
+  ]
+};
+
+/* ── STATE ── */
+let currentSample = null;
+let outputMode = 'patient';
+
+/* ── HELPERS ── */
+function parseReport(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  const rows = [];
+  lines.forEach(line => {
+    const m = line.match(/^([^:]+):\s*([\d,\.]+\s*[a-zA-Z\/μ%]*)\s*(?:\((?:Reference|Normal|Ref)?:?\s*([^)]+)\))?/i);
+    if (m) {
+      const name = m[1].trim().replace(/\(.*?\)/,'').trim();
+      const value = m[2].trim();
+      const ref = m[3] ? m[3].trim() : 'N/A';
+      const status = classifyValue(value, ref);
+      rows.push({ name, value, ref, status });
+    }
+  });
+  return rows;
+}
+
+function classifyValue(value, ref) {
+  if (ref === 'N/A') return 'normal';
+  const num = parseFloat(value.replace(/,/g,''));
+  if (isNaN(num)) return 'normal';
+  const rangMatch = ref.match(/([\d,\.]+)\s*[–\-]\s*([\d,\.]+)/);
+  if (rangMatch) {
+    const lo = parseFloat(rangMatch[1].replace(/,/g,''));
+    const hi = parseFloat(rangMatch[2].replace(/,/g,''));
+    if (num < lo) return 'low';
+    if (num > hi) return 'high';
+    return 'normal';
+  }
+  const ltMatch = ref.match(/<\s*([\d,\.]+)/);
+  if (ltMatch) {
+    return num >= parseFloat(ltMatch[1].replace(/,/g,'')) ? 'high' : 'normal';
+  }
+  return 'normal';
+}
+
+function badgeHtml(status) {
+  const map = { high: ['badge-high','↑ High'], low: ['badge-low','↓ Low'], normal: ['badge-normal','✓ Normal'] };
+  const [cls, label] = map[status] || map.normal;
+  return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`;
+}
+
+/* ── ACTIONS ── */
+function loadSample(type) {
+  currentSample = type;
+  document.getElementById('report-input').value = SAMPLES[type];
+}
+
+function clearInput() {
+  document.getElementById('report-input').value = '';
+  document.getElementById('results-section').classList.remove('show');
+  currentSample = null;
+  setStep(1);
+}
+
+function handleFile(input) {
+  if (input.files[0]) {
+    document.getElementById('file-name').style.display = 'block';
+    document.getElementById('file-name').textContent = '📄 ' + input.files[0].name + ' — ready for OCR extraction';
+  }
+}
+
+function setMode(mode, btn) {
+  ['text','upload','view'].forEach(m => {
+    document.getElementById('mode-'+m).classList.toggle('hidden', m !== mode);
+  });
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setLang(lang, btn) {
+  document.querySelectorAll('.lang-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setOutputMode(mode, btn) {
+  outputMode = mode;
+  document.querySelectorAll('.lang-selector .lang-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('step'+i);
+    el.className = 'step-circle ' + (i < n ? 'done' : i === n ? 'active' : 'pending');
+  }
+  for (let i = 1; i <= 2; i++) {
+    const el = document.getElementById('line'+i);
+    el.className = 'step-line ' + (i < n ? 'done' : '');
+  }
+}
+
+function showTab(tab, btn) {
+  ['extracted','explanation','diagnosis'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab);
+  });
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function analyzeReport() {
+  const btn = document.getElementById('analyze-btn');
+  const text = document.getElementById('report-input').value.trim();
+  if (!text) { alert('Please paste a medical report first.'); return; }
+
+  btn.classList.add('loading');
+  setStep(2);
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    setStep(3);
+    renderResults(text);
+  }, 1600);
+}
+
+function renderResults(text) {
+  const rows = parseReport(text);
+  const total = rows.length;
+  const abnormal = rows.filter(r => r.status !== 'normal').length;
+  const normal = total - abnormal;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-abnormal').textContent = abnormal;
+  document.getElementById('stat-normal').textContent = normal;
+
+  /* Table */
+  const tbody = document.getElementById('results-body');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const info = TEST_INFO[r.name] || 'This is a standard laboratory parameter.';
+    tbody.innerHTML += `<tr>
+      <td style="font-weight:500">${r.name}</td>
+      <td><strong>${r.value}</strong></td>
+      <td style="color:var(--gray-400);font-size:0.82rem">${r.ref}</td>
+      <td>${badgeHtml(r.status)}</td>
+      <td>
+        <button class="info-btn">i
+          <div class="tooltip">${info}</div>
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  /* Insight */
+  const insightMap = {
+    cbc: 'Pattern suggests microcytic hypochromic anemia — consistent with iron deficiency. Reactive thrombocytosis and leukocytosis may be associated.',
+    lft: 'Mixed hepatocellular and cholestatic pattern. Differential includes viral hepatitis, obstructive jaundice, or chronic liver disease.',
+    thyroid: 'High TSH with low free T4/T3 and markedly elevated anti-TPO confirms overt autoimmune (Hashimoto\'s) hypothyroidism.'
+  };
+  document.getElementById('insight-text').textContent = insightMap[currentSample] || `Detected ${abnormal} abnormal value(s) out of ${total} parameters. Review highlighted results and consult your physician.`;
+
+  /* Explanation tab */
+  const explDiv = document.getElementById('explanation-content');
+  const explData = EXPLANATIONS[currentSample] || [];
+  if (explData.length) {
+    explDiv.innerHTML = explData.map(e => `
+      <div class="explain-card" style="margin-bottom:16px">
+        <div style="font-weight:600;font-size:0.9rem;color:var(--blue-800);margin-bottom:8px">
+          ${badgeHtml(e.status)} &nbsp;${e.name}
+        </div>
+        <p>${e.text}</p>
+      </div>`).join('');
+  } else {
+    const abnRows = rows.filter(r => r.status !== 'normal');
+    explDiv.innerHTML = abnRows.length
+      ? abnRows.map(r => `<div class="explain-card" style="margin-bottom:16px">
+          <div style="font-weight:600;font-size:0.9rem;color:var(--blue-800);margin-bottom:8px">${badgeHtml(r.status)} &nbsp;${r.name} — ${r.status === 'high' ? 'Elevated' : 'Low'}</div>
+          <p>${TEST_INFO[r.name] || 'This value is outside the reference range. Please consult your physician.'}</p>
+        </div>`).join('')
+      : '<div class="explain-card"><p>All values appear within normal limits. No significant abnormalities detected.</p></div>';
+  }
+
+  /* Diagnosis tab */
+  const diagList = document.getElementById('diagnosis-list');
+  const diagData = DIAGNOSES[currentSample] || [];
+  if (diagData.length) {
+    diagList.innerHTML = diagData.map(d => `
+      <div class="diag-card">
+        <div class="diag-prob">${d.prob}%</div>
+        <div class="diag-bar-wrap">
+          <div class="diag-name">${d.name}</div>
+          <div class="diag-sub">${d.sub}</div>
+          <div class="diag-bar-track" style="margin-top:6px">
+            <div class="diag-bar-fill" style="width:${d.prob}%"></div>
+          </div>
+        </div>
+      </div>`).join('');
+  } else {
+    diagList.innerHTML = '<p style="font-size:0.88rem;color:var(--gray-400)">No probabilistic diagnosis available for custom input. Use a sample report to see this feature.</p>';
+  }
+
+  document.getElementById('results-section').classList.add('show');
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
