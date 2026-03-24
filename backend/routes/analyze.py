@@ -11,12 +11,15 @@ async def analyze_report(request: AnalyzerRequest):
         raise HTTPException(status_code=400, detail="Report text cannot be empty")
         
     try:
-        # 1. Analyze text using AI
-        extracted_results = analyze_report_with_ai(request.report_text)
+        # 1. Analyze text using AI (returns a dict now)
+        extracted_data = analyze_report_with_ai(request.report_text)
+        
+        raw_results = extracted_data.get("results", [])
+        raw_diagnoses = extracted_data.get("diagnoses", [])
         
         # 2. Convert to Pydantic models
         test_results = []
-        for res in extracted_results:
+        for res in raw_results:
             test_results.append(TestResult(
                 test_name=res.get("test_name", "Unknown"),
                 value=str(res.get("value", "N/A")),
@@ -25,11 +28,19 @@ async def analyze_report(request: AnalyzerRequest):
                 explanation=res.get("explanation", "")
             ))
             
-        # 3. Save to database asynchronously or in background (doing it synchronously here for simplicity)
-        save_report_and_results(request.user_id, request.report_text, extracted_results)
+        diagnoses = []
+        for d in raw_diagnoses:
+            diagnoses.append({
+                "name": str(d.get("name", "Unknown")),
+                "sub": str(d.get("sub", "")),
+                "prob": int(d.get("prob", 50))
+            })
+            
+        # 3. Save to database synchronously (only sending results array)
+        save_report_and_results(request.user_id, request.report_text, raw_results)
         
         # 4. Return response
-        return AnalyzerResponse(results=test_results)
+        return AnalyzerResponse(results=test_results, diagnoses=diagnoses)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

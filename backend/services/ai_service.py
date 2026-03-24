@@ -14,17 +14,13 @@ client = Groq(api_key=GROQ_API_KEY)
 def analyze_report_with_ai(report_text: str):
     prompt = """
     You are an expert AI clinical data extractor and interpreter. 
-    Analyze the following medical report text and extract the individual test results.
-    For each test result found, provide:
-    1. test_name: Name of the test
-    2. value: The patient's result value
-    3. reference_range: The normal reference range (if provided or known)
-    4. status: Must be exactly "Low", "Normal", or "High" based on the value and reference range.
-    5. explanation: A simple, patient-friendly one-sentence explanation of what this test measures and what the result means.
-
-    Return the output EXCLUSIVELY as a JSON array of objects. Do not include markdown formatting like ```json.
+    Analyze the following medical report text and extract the individual test results, and then provide a short list of probable differential diagnoses (maximum 3) based ONLY on the abnormal values found.
+    
+    Return the output EXCLUSIVELY as a JSON object with two keys: "results" and "diagnoses". Do not include markdown formatting like ```json.
+    
     Example output format:
-    [
+    {
+      "results": [
         {
             "test_name": "Hemoglobin",
             "value": "9.2 g/dL",
@@ -32,7 +28,15 @@ def analyze_report_with_ai(report_text: str):
             "status": "Low",
             "explanation": "Your hemoglobin is low, which may indicate anemia."
         }
-    ]
+      ],
+      "diagnoses": [
+        {
+            "name": "Iron Deficiency Anemia",
+            "sub": "Suggested by low Hemoglobin",
+            "prob": 80
+        }
+      ]
+    }
 
     Medical Report Text:
     {report_text}
@@ -43,7 +47,7 @@ def analyze_report_with_ai(report_text: str):
             messages=[
                 {
                     "role": "user",
-                    "content": prompt.format(report_text=report_text)
+                    "content": prompt.replace("{report_text}", report_text)
                 }
             ],
             model=GROQ_MODEL,

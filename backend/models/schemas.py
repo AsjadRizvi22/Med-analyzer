@@ -12,6 +12,12 @@ class TestResult(BaseModel):
     status: str
     explanation: str
 
+class Diagnosis(BaseModel):
+    name: str
+    sub: str
+    prob: int
+
 class AnalyzerResponse(BaseModel):
     results: List[TestResult]
+    diagnoses: List[Diagnosis] = []
     disclaimer: str = "Medical Disclaimer: This tool is for educational and informational purposes only. Results generated are not a medical diagnosis. Always consult a qualified healthcare professional for medical advice, diagnosis, or treatment."
